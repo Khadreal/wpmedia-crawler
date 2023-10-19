@@ -12,7 +12,7 @@ $results = $component->getResults();
 ?>
 <div class="wrap">
 	<div class="flex d-flex">
-		<h2><?php _e( 'Crawl page', 'wpmedia-crawl' ); ?></h2>
+		<h2><?php _e( 'Crawl page', 'wpmedia-crawler' ); ?></h2>
 		<form method="POST">
 			<table>
 				<tr>

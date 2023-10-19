@@ -86,7 +86,7 @@ class Admin
 		$crawlPages = maybe_unserialize( get_option( $this->dataKey ) );
 		$crawlPages = ! $crawlPages ? [] : $crawlPages;
 		$ids = array_column( $crawlPages, 'id' );
-		$key = 'Homepage';
+		$key = 'wpmedia_crawl_homepage';
 		$pageTitle = 'Homepage';
 
 		if( $pageId !== 'homepage' ) {
