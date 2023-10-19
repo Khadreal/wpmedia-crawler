@@ -10,6 +10,16 @@ class Admin
 	/**
 	 * @var string
 	 */
+	private $htmlDirectory = Component::WP_MEDIA_DIRECTORY . 'html/';
+
+	/**
+	 * @var string
+	 */
+	private $sitemapDirectory = Component::WP_MEDIA_DIRECTORY . 'sitemap/';
+
+	/**
+	 * @var string
+	 */
 	private $hook = 'cron_crawl_pages';
 
 	/**
@@ -79,13 +89,13 @@ class Admin
 		$key = 'Homepage';
 		$pageTitle = 'Homepage';
 
-		if($pageId !== 'Homepage') {
+		if( $pageId !== 'homepage' ) {
 			$key = $this->getPageUniqueKey( (int) $pageId );
 			$pageTitle = get_the_title( $pageId );
 		}
 
 		$pageData = [
-			'id' => $pageId,
+			'id' => $pageId === 'homepage' ? 'homepage' : $pageId,
 			'title' => $pageTitle,
 			'key' => $key
 		];
@@ -100,10 +110,9 @@ class Admin
 			update_option( $this->dataKey, maybe_serialize( $crawlPages ) );
 		}
 
-
 		// If home page is not dynamic.
 		if( $pageId === 'homepage' ) {
-			$this->nonDynamicHomePage( $crawlPages, $ids );
+			$this->nonDynamicHomePage();
 
 			return;
 		}
@@ -127,12 +136,10 @@ class Admin
 
 	/**
 	 * If home page is static and not front page
-	 * @param array $crawlPages
-	 * @param array $ids
 	 *
 	 * @return void
 	 */
-	private function nonDynamicHomePage( array $crawlPages, array $ids )
+	private function nonDynamicHomePage()
 	{
 		$key = 'wpmedia_crawl_homepage';
 
@@ -244,7 +251,17 @@ class Admin
 	 */
 	private function generateStaticFile( string $data, string $filename ) : void
 	{
+		$uploadDir = wp_upload_dir()['basedir'];
+		$directory = $uploadDir . $this->htmlDirectory;
 
+		if( ! is_dir( $directory ) ) {
+			wp_mkdir_p( $directory );
+		}
+
+		$filename = $directory . $filename . '.html';
+
+		// Save to directory, so it can be bundled or retrieved later.
+		file_put_contents( $filename, $data );
 	}
 
 	/**
@@ -257,6 +274,69 @@ class Admin
 	 */
 	private function generateSitemap( array $links, string $filename, string $title ) : void
 	{
+		$uploadDir = wp_upload_dir()['basedir'];
 
+		$directory = $uploadDir . $this->sitemapDirectory;
+
+		if ( ! is_dir( $directory ) ) {
+			wp_mkdir_p( $directory );
+		}
+		// Generate sitemap html.
+		$this->generateHTMLSitemap( $links, $filename, $directory, $title );
+
+		// Generate sitemp xml.
+		$this->generateXMLSitemap( $links, $filename, $directory );
+	}
+
+	/**
+	 * Generate html sitemap list structure
+	 *
+	 * @param array $links
+	 * @param string $filename
+	 * @param string $directory
+	 * @param string $title
+	 *
+	 * @return void
+	 */
+	private function generateHTMLSitemap( array $links, string $filename, string $directory, string $title ) : void
+	{
+		$info = sprintf(
+			'%d %s %s',
+			count($links),
+			__( 'internal link(s) found on', 'wpmedia-crawler' ),
+			$title,
+		);
+		ob_start();
+
+		include( 'Admin/frontend/html_sitemap_template.php' );
+
+		$html = ob_get_clean();
+
+		$sitemap = $directory . $filename . '.html';
+
+		file_put_contents( $sitemap, $html );
+	}
+
+	/**
+	 * Generate xml sitemap based on links generated
+	 * @param array $links
+	 * @param string $filename
+	 * @param string $directory
+	 *
+	 * @return void
+	 */
+	private function generateXMLSitemap( array $links, string $filename, string $directory ) : void
+	{
+		$xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+		foreach ($links as $link) {
+			$xml .= '<url><loc>'. htmlspecialchars( $link ) .'</loc></url>';
+		}
+
+		$xml .= '</urlset>';
+
+		$sitemap = $directory . $filename . '.xml';
+
+		// Save to disc so it can be retrieved later.
+		file_put_contents( $sitemap, $xml );
 	}
 }

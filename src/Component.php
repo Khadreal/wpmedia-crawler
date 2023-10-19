@@ -21,7 +21,7 @@ class Component
 	*/
 	public $dataKey = 'wp_media_crawler_pages';
 
-	public const WP_MEDIA_DIRECTORY = '/wp-media/';
+	public const WP_MEDIA_DIRECTORY = '/wp-media-crawler/';
 
 	/**
 	 * @var string
@@ -104,7 +104,6 @@ class Component
 		$action = $_REQUEST['action'] ?? '';
 		$key = $_REQUEST['key'] ?? '';
 		$id = $_REQUEST['id'] ?? 0;
-
 		if( $action === 'view' ) {
 			$links = maybe_unserialize( get_option( $key ) );
 			$title = get_the_title( $id );
