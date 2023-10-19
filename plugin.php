@@ -37,5 +37,5 @@ function wpc_crawler_plugin_init() {
 }
 add_action( 'plugins_loaded',  __NAMESPACE__ . '\wpc_crawler_plugin_init' );
 
-register_activation_hook( __FILE__, __NAMESPACE__ . '\Component::wpcActivate' );
-register_uninstall_hook( __FILE__, __NAMESPACE__ . '\Component::wpcUninstall' );
+register_activation_hook( __FILE__, __NAMESPACE__ . '\Component::wpc_activate' );
+register_uninstall_hook( __FILE__, __NAMESPACE__ . '\Component::wpc_uninstall' );

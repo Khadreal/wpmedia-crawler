@@ -5,8 +5,7 @@ namespace WPCrawler;
 /**
  * Admin related function class
  */
-class Admin
-{
+class Admin {
 	/**
 	 * @var string
 	 */

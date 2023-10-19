@@ -8,7 +8,7 @@ if( get_option('page_on_front') ){
 }
 
 $component = new Component();
-$results = $component->getResults();
+$results = $component->get_results();
 ?>
 <div class="wrap">
 	<div class="flex d-flex">
@@ -63,7 +63,7 @@ $results = $component->getResults();
 								<?php
 								echo sprintf(
 									'<a href="%s">%s',
-									$component->singlePageAction( $result['key'], 'view' ),
+									$component->single_page_action( $result['key'], 'view' ),
 									__( 'View links', 'wpmedia-crawler' )
 								);
 								?>
@@ -72,7 +72,7 @@ $results = $component->getResults();
 								echo sprintf(
 									'<a target="%s" href="%s">%s',
 									'_blank',
-									$component->viewStaticPage( $result['key'] ),
+									$component->view_static_page( $result['key'] ),
 									__( 'View static page', 'wpmedia-crawler' )
 								);
 								?>
@@ -81,7 +81,7 @@ $results = $component->getResults();
 								echo sprintf(
 									'<a target="%s" href="%s">%s',
 									'_blank',
-									$component->viewStaticPage( $result['key'], 'sitemap' ),
+									$component->view_static_page( $result['key'], 'sitemap' ),
 									__( 'View sitemap', 'wpmedia-crawler' )
 								);
 								?>
@@ -89,7 +89,7 @@ $results = $component->getResults();
 								<?php
 								echo sprintf(
 									'<a href="%s"><i class="dashicons dashicons-trash"></i></a>',
-									$component->deleteAction( $result['key'], 'delete' )
+									$component->delete_action( $result['key'], 'delete' )
 								);
 								?>
 							</td>

@@ -18,23 +18,22 @@
 	<arg name="colors"/><!-- Show results with colors -->
 	<arg name="parallel" value="50"/><!-- Enables parallel processing when available for faster results. -->
 	<arg name="extensions" value="php"/><!-- Limit to PHP files -->
-
 	<!-- Rules: Check PHP version compatibility - see https://github.com/PHPCompatibility/PHPCompatibilityWP -->
 	<rule ref="PHPCompatibility"/>
-	<config name="testVersion" value="5.6-"/>
-	<config name="minimum_supported_wp_version" value="4.9"/>
+	<config name="testVersion" value="7.3-"/>
+	<config name="minimum_supported_wp_version" value="6.0"/>
 
 	<rule ref="WordPress">
         <exclude name="WordPress.Files.FileName.NotHyphenatedLowercase" />
 	</rule>
     <rule ref="WordPress.WP.I18n">
         <properties>
-            <property name="text_domain" type="array" value="rocket" />
+            <property name="text_domain" type="array" value="wpmedia-crawler" />
         </properties>
     </rule>
     <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
         <properties>
-            <property name="prefixes" type="array" value="rocket,wp_rocket" />
+            <property name="prefixes" type="array" value="wpcrawler,wp_rocket" />
         </properties>
     </rule>
     <rule ref="WordPress.Files.FileName">
