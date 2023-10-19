@@ -91,15 +91,6 @@ class Component {
 			'dashicons-admin-site-alt2',
 			40
 		);
-
-		add_submenu_page(
-			'wpmedia-crawler',
-			__( 'View Webpage Links', 'wpmedia-crawler' ),
-			__( 'View Page Links', 'wpmedia-crawler' ),
-			'manage_options',
-			'wpmedia-crawler-view',
-			array( $this, 'callback_crawler_admin_page' )
-		);
 	}
 
 	/**
@@ -108,19 +99,23 @@ class Component {
 	 * @return void
 	 */
 	public function callback_crawler_admin_page(): void {
-		if ( empty( $_REQUEST['key'] ) || empty( $_REQUEST['id'] ) ) {
+		if ( ! isset( $_GET['key'] ) ) {
 			include 'Admin/frontend/index.php';
 
 			return;
 		}
-		$action = '';
-		if ( isset( $_REQUEST['action'] ) ) {
-			$action = sanitize_text_field( wp_unslash( $_REQUEST['action'] ) );
+		$info = '';
+		if ( isset( $_GET['info'] ) ) {
+			$info = sanitize_text_field( wp_unslash( $_GET['info'] ) );
 		}
 
-		$key = sanitize_text_field( wp_unslash( $_REQUEST['key'] ) ) ?? '';
-		$id  = sanitize_text_field( wp_unslash( $_REQUEST['id'] ) ) ?? 0;
-		if ( 'view' === $action ) {
+		$id = 0;
+		if ( isset( $_GET['id'] ) ) {
+			$id = sanitize_text_field( wp_unslash( $_GET['id'] ) );
+		}
+
+		$key = sanitize_text_field( wp_unslash( $_GET['key'] ) );
+		if ( 'view' === $info ) {
 			$links = maybe_unserialize( get_option( $key ) );
 			$title = get_the_title( $id );
 
@@ -191,15 +186,15 @@ class Component {
 	 * Single page action
 	 *
 	 * @param string $key The unique key of the page.
-	 * @param string $action The action to be carried out.
+	 * @param string $info The page you want to view.
 	 *
 	 * @return string
 	 */
-	public function single_page_action( string $key, string $action ): string {
+	public function single_page_action( string $key, string $info ): string {
 		return add_query_arg(
 			array(
-				'action' => $action,
-				'key'    => $key,
+				'info' => $info,
+				'key'  => $key,
 			)
 		);
 	}
