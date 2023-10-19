@@ -2,3 +2,4 @@
 /Tests/env/local/
 *.cache
 composer.lock
+.DS_Store

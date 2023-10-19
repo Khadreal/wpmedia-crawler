@@ -2,9 +2,9 @@
 /**
  *  Exception handling
  *
- * @package     TO FILL
- * @since       TO FILL
- * @author      Mathieu Lamiot
+ * @package     WPCrawler
+ * @since       2023
+ * @author      Opeyemi Ibrahim
  * @license     GPL-2.0-or-later
  */
 

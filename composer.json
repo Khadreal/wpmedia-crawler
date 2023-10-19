@@ -1,18 +1,18 @@
 {
-    "name"          : "mathieulamiot/wp-crawler-wpplugin",
+    "name"          : "opeyemiibrahim/wp-crawler-wpplugin",
     "description"   : "Website crawler as a WordPress plugin. Answer to the WP-Media developer test case.",
     "type"          : "project",
     "keywords"      : ["wordpress", "wp", "plugin"],
-    "homepage"      : "https://github.com/AgentAGadge",
+    "homepage"      : "https://github.com/khadreal",
     "license"       : "GPL-2.0+",
     "authors"       : [
         {
-            "name": "Mathieu Lamiot",
-            "email": "mathieu.lamiot@free.fr"
+            "name": "Opeyemi Ibrahim",
+            "email": "opeyemi.khadri@gmail.com"
         }
     ],
     "require"       : {
-        "php" : ">=7.3"
+
     },
     "require-dev":{
         "raveren/kint": "~1.0",
@@ -25,7 +25,11 @@
 		"wp-coding-standards/wpcs": "dev-develop",
 		"wp-media/phpunit": "^3"
     },
-    "autoload": {},
+	"autoload": {
+		"psr-4": {
+			"WPCrawler\\": "."
+		}
+	},
     "extra": {
         "branch-alias": {
             "dev-master": "1.0-dev"
