@@ -13,7 +13,31 @@ namespace WPCrawler;
 /**
  * Main plugin class. It manages initialization, install, and activations.
  */
-class Component {
+class Component
+{
+
+	/**
+	 * @var string
+	*/
+	public $dataKey = 'wp_media_crawler_pages';
+
+	public const WP_MEDIA_DIRECTORY = '/wp-media/';
+
+	/**
+	 * @var string
+	 */
+	private $htmlDirectory = Component::WP_MEDIA_DIRECTORY . 'html/';
+
+	/**
+	 * @var string
+	 */
+	private $sitemapDirectory = Component::WP_MEDIA_DIRECTORY . 'sitemap/';
+
+	/**
+	 * @var string
+	 */
+	private $extension = '.html';
+
 	/**
 	 * Manages plugin initialization
 	 *
@@ -35,6 +59,15 @@ class Component {
 	public function registerCallbacks(): void
 	{
 		add_action( 'admin_menu', [ $this, 'actionAddMenu' ] );
+		add_action( 'admin_init', [ $this, 'actionAdminInit' ] );
+	}
+
+	/**
+	 * @return void
+	*/
+	public function actionAdminInit(): void
+	{
+		( new Admin )->init();
 	}
 
 	/**
@@ -128,5 +161,77 @@ class Component {
 		if ( ! current_user_can( 'activate_plugins' ) ) {
 			return;
 		}
+	}
+
+	/**
+	 * Get results
+	 *
+	 * @return array
+	 */
+	public function getResults() : array
+	{
+		$results = maybe_unserialize( get_option( $this->dataKey ) );
+
+		return ( ! $results ) ? [] : $results;
+	}
+
+	/**
+	 * @param string $key
+	 * @param string $action
+	 *
+	 * @return string
+	 */
+	public function singlePageAction( string $key, string $action ) : string
+	{
+		return add_query_arg( [
+			'action' => $action,
+			'key' => $key
+		] );
+	}
+
+	/**
+	 * @param string $key
+	 * @param string $action
+	 *
+	 * @return string
+	 */
+	public function deleteAction( string $key, string $action ) : string
+	{
+		$nonce = wp_create_nonce( 'delete-' . $key );
+
+		return add_query_arg( [
+			'action' => $action,
+			'key' => $key,
+			'_wpnonce' => $nonce,
+		] );
+	}
+
+
+	/**
+	 * @param string $key
+	 * @param string $type
+	 *
+	 * @return string
+	 */
+	public function viewStaticPage( string $key, string $type = 'static' ) : string
+	{
+		$uploadBaseUrl = wp_upload_dir()['baseurl'];
+
+		$directory = $type === 'static' ? $this->htmlDirectory : $this->sitemapDirectory;
+
+		return $uploadBaseUrl . $directory . $key . $this->extension;
+	}
+
+	/**
+	 * @param int $id
+	 *
+	 * @return string
+	 */
+	public function generatePageKey( int $id ) : string
+	{
+		$pageTitle = get_the_title( $id );
+		$changeTitleSpaceToUnderscore = strtolower( str_replace( ' ', '_', $pageTitle ) );
+
+		return 'wpmedia_crawler_'. $changeTitleSpaceToUnderscore . '_' . $id;
 	}
 }
