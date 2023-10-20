@@ -23,7 +23,8 @@
 		"phpcompatibility/phpcompatibility-wp": "^2.0",
 		"phpunit/phpunit": "^5.7 || ^7 || ^8",
 		"wp-coding-standards/wpcs": "dev-develop",
-		"wp-media/phpunit": "^3"
+		"wp-media/phpunit": "^3",
+		"phpmd/phpmd" : "@stable"
     },
 	"autoload": {
 		"psr-4": {
@@ -52,6 +53,10 @@
 		"install-codestandards": "Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\Plugin::run",
 		"phpcs": "phpcs --basepath=.",
 		"phpcs-changed": "./bin/phpcs-changed.sh",
-		"phpcs:fix": "phpcbf"
+		"phpcs:fix": "phpcbf",
+		"post-install-cmd": [
+			"php-pre-commit",
+			"@install-codestandards"
+		]
 	}
 }

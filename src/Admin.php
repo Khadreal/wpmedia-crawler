@@ -7,59 +7,74 @@ namespace WPCrawler;
  */
 class Admin {
 	/**
+	 * Html directory
+	 *
 	 * @var string
 	 */
-	private $htmlDirectory = Component::WP_MEDIA_DIRECTORY . 'html/';
+	private $html_directory = Component::WP_MEDIA_DIRECTORY . 'html/';
 
 	/**
+	 * Site map directory
+	 *
 	 * @var string
 	 */
-	private $sitemapDirectory = Component::WP_MEDIA_DIRECTORY . 'sitemap/';
+	private $sitemap_directory = Component::WP_MEDIA_DIRECTORY . 'sitemap/';
 
 	/**
+	 * Cron hook
+	 *
 	 * @var string
 	 */
 	private $hook = 'cron_crawl_pages';
 
 	/**
-	 * option key value
+	 * Option key value
 	 *
-	 * @var
+	 * @var $data_key
 	 */
-	private $dataKey = 'wp_media_crawler_pages';
+	private $data_key = 'wp_media_crawler_pages';
 
 	/**
-	 * handles notification text
+	 * Handles notification text
 	 *
-	 * @var
+	 * @var $response_text
 	 */
-	private $responseText;
+	private $response_text;
 
-	//It would be great if there is section on the admin to specify for the user.
-	private $extensions = [
+	// TODO:: It would be great if there is section on the admin to specify for the user.
+
+	/**
+	 * Array of extensions
+	 *
+	 * @var $extensions
+	 */
+	private $extensions = array(
 		'.jpg',
 		'.png',
 		'.jpeg',
 		'.css',
 		'.js',
-		'.svg'
-	];
+		'.svg',
+		'.pdf',
+	);
 
 	/**
 	 * Initialisation
 	 *
 	 * @return void
 	 */
-	public function init() : void
-	{
-		$this->actionAdminInit();
-		$this->registerCallbacks();
-
+	public function init(): void {
+		$this->action_admin_init();
+		$this->register_callbacks();
 	}
 
-	public function registerCallbacks() : void
-	{
-		add_action( 'cron_crawl_pages', [ $this, 'actionCronCrawlPages' ] );
+	/**
+	 * Register callbacks
+	 *
+	 * @return void
+	 */
+	public function register_callbacks(): void {
+		add_action( 'cron_crawl_pages', array( $this, 'action_cron_crawl_pages' ) );
 	}
 
 	/**
@@ -67,69 +82,72 @@ class Admin {
 	 *
 	 * @return void
 	 */
-	public function actionAdminInit() : void
-	{
-		if( ! array_key_exists( 'manual_crawl_pages', $_POST )
-			|| ! wp_verify_nonce( $_POST['manual_crawl_pages'], 'manual_crawl_pages' )
+	public function action_admin_init(): void {
+		if ( ! array_key_exists( 'manual_crawl_pages', $_POST )
+			|| ! wp_verify_nonce(
+				sanitize_text_field( wp_unslash( $_POST['manual_crawl_pages'] ) ),
+				'manual_crawl_pages'
+			)
 		) {
 			return;
 		}
-		$pageId = $_POST['page_id'];
 
-		if( ! isset( $pageId ) ) {
-			$this->responseText = __( 'Invalid page id', 'wpmedia-crawl' );
-			//Add notification view here
+		if ( ! isset( $_POST['page_id'] ) ) {
+			$this->response_text = __( 'Invalid page id', 'wpmedia-crawler' );
+			// Add notification view here.
 			return;
 		}
 
-		$crawlPages = maybe_unserialize( get_option( $this->dataKey ) );
-		$crawlPages = ! $crawlPages ? [] : $crawlPages;
-		$ids = array_column( $crawlPages, 'id' );
-		$key = 'wpmedia_crawl_homepage';
-		$pageTitle = 'Homepage';
+		$page_id = sanitize_text_field( wp_unslash( $_POST['page_id'] ) );
 
-		if( $pageId !== 'homepage' ) {
-			$key = $this->getPageUniqueKey( (int) $pageId );
-			$pageTitle = get_the_title( $pageId );
+		$crawl_pages = maybe_unserialize( get_option( $this->data_key ) );
+		$crawl_pages = ! $crawl_pages ? array() : $crawl_pages;
+		$ids         = array_column( $crawl_pages, 'id' );
+		$key         = 'wpmedia_crawl_homepage';
+		$page_title  = 'Homepage';
+
+		if ( 'homepage' !== $page_id ) {
+			$key        = $this->get_page_unique_key( (int) $page_id );
+			$page_title = get_the_title( $page_id );
 		}
 
-		$pageData = [
-			'id' => $pageId === 'homepage' ? 'homepage' : $pageId,
-			'title' => $pageTitle,
-			'key' => $key
-		];
+		$page_data = array(
+			'id'    => 'homepage' === $page_id ? 'homepage' : $page_id,
+			'title' => $page_title,
+			'key'   => $key,
+		);
 
 		// We don't need to update the data if the page already existed, we only insert if it's new.
-		if( in_array( $pageId, $ids, true ) ) {
-			$pageData = [];
+		if ( in_array( $page_id, $ids, true ) ) {
+			$page_data = array();
 		}
 
-		if( ! empty( $pageData ) ) {
-			$crawlPages[] = $pageData;
-			update_option( $this->dataKey, maybe_serialize( $crawlPages ) );
+		if ( ! empty( $page_data ) ) {
+			$crawl_pages[] = $page_data;
+			update_option( $this->data_key, maybe_serialize( $crawl_pages ) );
 		}
 
 		// If home page is not dynamic.
-		if( $pageId === 'homepage' ) {
-			$this->nonDynamicHomePage();
+		if ( 'homepage' === $page_id ) {
+			$this->non_dynamic_home_page();
 
 			return;
 		}
 
 		// Payload needed for running the cron.
-		$cronArgs = [
-			'id' => $pageId,
-			'key' => $key
-		];
+		$cron_args = array(
+			'id'  => $page_id,
+			'key' => $key,
+		);
 
-		$this->responseText = __( 'Webpage crawl processing', 'wpmedia-crawler' );
-		add_action( 'admin_notices', [ $this, 'notification' ] );
+		$this->response_text = __( 'Webpage crawl processing', 'wpmedia-crawler' );
+		add_action( 'admin_notices', array( $this, 'notification' ) );
 
-		if( ! wp_next_scheduled( $this->hook, 90 ) ) {
-			wp_schedule_single_event( time() + 1, $this->hook, [ $cronArgs ] );
+		if ( ! wp_next_scheduled( $this->hook, 90 ) ) {
+			wp_schedule_single_event( time() + 1, $this->hook, array( $cron_args ) );
 
-			//Scheduled every hour
-			wp_schedule_event( time() , 'hourly', $this->hook, [ $cronArgs ] );
+			// Scheduled every hour.
+			wp_schedule_event( time(), 'hourly', $this->hook, array( $cron_args ) );
 		}
 	}
 
@@ -138,103 +156,105 @@ class Admin {
 	 *
 	 * @return void
 	 */
-	private function nonDynamicHomePage()
-	{
+	private function non_dynamic_home_page() {
 		$key = 'wpmedia_crawl_homepage';
 
-		$cronArgs = [
-			'id' => 0,
-			'key' => $key
-		];
+		$cron_args = array(
+			'id'  => 0,
+			'key' => $key,
+		);
 
-		$this->responseText = __( 'Webpage crawl processing', 'wpmedia-crawler' );
+		$this->response_text = __( 'Webpage crawl processing', 'wpmedia-crawler' );
 
-		if( ! wp_next_scheduled( $this->hook, 90 ) ) {
-			//Run event immediately at once
-			wp_schedule_single_event( time() + 1, $this->hook, [ $cronArgs ] );
+		if ( ! wp_next_scheduled( $this->hook, 90 ) ) {
+			// Run event immediately at once.
+			wp_schedule_single_event( time() + 1, $this->hook, array( $cron_args ) );
 
-			//Scheduled every hour
+			// Scheduled every hour.
+
 			/*
 			 * TODO:: Add a section for admin to stop/pause this process
 			*/
-			wp_schedule_event( time() , 'hourly', $this->hook, [ $cronArgs ] );
+			wp_schedule_event( time(), 'hourly', $this->hook, array( $cron_args ) );
 		}
 	}
 
 	/**
-	 * @param int $id
+	 * Get page unique key
+	 *
+	 * @param int $id Page id.
 	 *
 	 * @return string
-	*/
-	public function getPageUniqueKey( int $id ): string
-	{
-		$pageTitle = get_the_title( $id );
-		$changeTitleSpaceToUnderscore = strtolower( str_replace( ' ', '_', $pageTitle ) );
+	 */
+	public function get_page_unique_key( int $id ): string {
+		$page_title                       = get_the_title( $id );
+		$change_title_space_to_underscore = strtolower( str_replace( ' ', '_', $page_title ) );
 
-		return 'wpmedia_crawler_'. $changeTitleSpaceToUnderscore . '_' . $id;
+		return 'wpmedia_crawler_' . $change_title_space_to_underscore . '_' . $id;
 	}
 
 	/**
+	 * Action to crawl pages
 	 *
-	 * @param array $args
+	 * @param array $args Argument to crawl pages.
 	 *
 	 * @return void
 	 */
-	public function actionCronCrawlPages( array $args )
-	{
+	public function action_cron_crawl_pages( array $args ): void {
 		// If empty/false bail early.
-		if( ! isset( $args['id'] ) ) {
+		if ( ! isset( $args['id'] ) ) {
 			return;
 		}
 
 		$key = $args['key'] ?? '';
 
-		if( ! $key ) {
-			$key = $this->getPageUniqueKey( (int) $args['id'] );
+		if ( ! $key ) {
+			$key = $this->get_page_unique_key( (int) $args['id'] );
 		}
 
-		$url = ( $args['id'] === 0 ) ? get_home_url() : get_page_link( $args['id'] ) ;
-		$title = ( $args['id'] === 0 ) ? 'Homepage' : get_the_title( $args['id'] );
+		$url   = ( 0 === $args['id'] ) ? get_home_url() : get_page_link( $args['id'] );
+		$title = ( 0 === $args['id'] ) ? 'Homepage' : get_the_title( $args['id'] );
 
-		$pageData = file_get_contents( $url );
-		$doc = new \DOMDocument();
+		$page_data = file_get_contents( $url );
+		$doc       = new \DOMDocument();
 		// Suppress the error if html string is not valid mostly for html 5(weird right).
 		libxml_use_internal_errors( true );
-		$doc->loadHTML( $pageData );
+		$doc->loadHTML( $page_data );
 		libxml_use_internal_errors( false );
-		$internalUrls = $this->processPageLinks( $doc->getElementsByTagName('a') );
+		$internal_urls = $this->process_page_links( $doc->getElementsByTagName( 'a' ) );
 
-		$this->generateStaticFile( $pageData, $key );
+		$this->generate_static_file( $page_data, $key );
 
-		$this->generateSitemap( $internalUrls, $key, $title );
+		$this->generate_sitemap( $internal_urls, $key, $title );
 
-		update_option( $key, maybe_serialize( $internalUrls ) );
+		update_option( $key, maybe_serialize( $internal_urls ) );
 	}
 
 	/**
 	 * Process internal links
-	 * @param $links
+	 *
+	 * @param mixed $links Links generated from page.
 	 *
 	 * @return array
 	 */
-	private function processPageLinks( $links ) : array
-	{
-		$siteUrl = parse_url( get_site_url(), PHP_URL_HOST );
+	private function process_page_links( $links ): array {
+		$site_url = parse_url( get_site_url(), PHP_URL_HOST );
 
-		$retval = [];
+		$retval = array();
 
-		foreach( $links as $object ) {
+		foreach ( $links as $object ) {
 			$link = $object->getAttribute( 'href' );
 
-			$path = parse_url( $link, PHP_URL_PATH );
-			$extension = ( $pos = strrpos( $path, '.' ) ) ? substr( $path, $pos ) : '';
-			if( in_array( $extension, $this->extensions )
-				|| $siteUrl !== parse_url( $link, PHP_URL_HOST )
+			$path      = parse_url( $link, PHP_URL_PATH );
+			$pos       = strrpos( $path, '.' );
+			$extension = $pos ? substr( $path, $pos ) : '';
+			if ( in_array( $extension, $this->extensions, true )
+				|| parse_url( $link, PHP_URL_HOST ) !== $site_url
 			) {
 				continue;
 			}
 
-			$retval[] =  $link;
+			$retval[] = $link;
 		}
 
 		return $retval;
@@ -243,17 +263,16 @@ class Admin {
 	/**
 	 * Save page as static .html file
 	 *
-	 * @param string $data
-	 * @param string $filename
+	 * @param string $data Page data.
+	 * @param string $filename Filename of the page.
 	 *
 	 * @return void
 	 */
-	private function generateStaticFile( string $data, string $filename ) : void
-	{
-		$uploadDir = wp_upload_dir()['basedir'];
-		$directory = $uploadDir . $this->htmlDirectory;
+	private function generate_static_file( string $data, string $filename ): void {
+		$upload_dir = wp_upload_dir()['basedir'];
+		$directory  = $upload_dir . $this->html_directory;
 
-		if( ! is_dir( $directory ) ) {
+		if ( ! is_dir( $directory ) ) {
 			wp_mkdir_p( $directory );
 		}
 
@@ -266,48 +285,46 @@ class Admin {
 	/**
 	 * Generate sitemap
 	 *
-	 * @param array $links
-	 * @param string $filename
-	 * @param string $title
+	 * @param array  $links internal links.
+	 * @param string $filename filename to store.
+	 * @param string $title Page title.
 	 * @return void
 	 */
-	private function generateSitemap( array $links, string $filename, string $title ) : void
-	{
-		$uploadDir = wp_upload_dir()['basedir'];
+	private function generate_sitemap( array $links, string $filename, string $title ): void {
+		$upload_dir = wp_upload_dir()['basedir'];
 
-		$directory = $uploadDir . $this->sitemapDirectory;
+		$directory = $upload_dir . $this->sitemap_directory;
 
 		if ( ! is_dir( $directory ) ) {
 			wp_mkdir_p( $directory );
 		}
 		// Generate sitemap html.
-		$this->generateHTMLSitemap( $links, $filename, $directory, $title );
+		$this->generate_html_sitemap( $links, $filename, $directory, $title );
 
-		// Generate sitemp xml.
-		$this->generateXMLSitemap( $links, $filename, $directory );
+		// Generate sitemap xml.
+		$this->generate_xml_sitemap( $links, $filename, $directory );
 	}
 
 	/**
 	 * Generate html sitemap list structure
 	 *
-	 * @param array $links
-	 * @param string $filename
-	 * @param string $directory
-	 * @param string $title
+	 * @param array  $links Internal links generated.
+	 * @param string $filename filename of the sitemap.
+	 * @param string $directory the directory to store the sitemap.
+	 * @param string $title Page title.
 	 *
 	 * @return void
 	 */
-	private function generateHTMLSitemap( array $links, string $filename, string $directory, string $title ) : void
-	{
+	private function generate_html_sitemap( array $links, string $filename, string $directory, string $title ): void {
 		$info = sprintf(
 			'%d %s %s',
-			count($links),
+			count( $links ),
 			__( 'internal link(s) found on', 'wpmedia-crawler' ),
 			$title,
 		);
 		ob_start();
 
-		include( 'Admin/frontend/html_sitemap_template.php' );
+		include 'Admin/frontend/html_sitemap_template.php';
 
 		$html = ob_get_clean();
 
@@ -318,17 +335,17 @@ class Admin {
 
 	/**
 	 * Generate xml sitemap based on links generated
-	 * @param array $links
-	 * @param string $filename
-	 * @param string $directory
+	 *
+	 * @param array  $links Internal links generated.
+	 * @param string $filename filename of the sitemap.
+	 * @param string $directory the directory to store the sitemap.
 	 *
 	 * @return void
 	 */
-	private function generateXMLSitemap( array $links, string $filename, string $directory ) : void
-	{
+	private function generate_xml_sitemap( array $links, string $filename, string $directory ): void {
 		$xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
-		foreach ($links as $link) {
-			$xml .= '<url><loc>'. htmlspecialchars( $link ) .'</loc></url>';
+		foreach ( $links as $link ) {
+			$xml .= '<url><loc>' . htmlspecialchars( $link ) . '</loc></url>';
 		}
 
 		$xml .= '</urlset>';
