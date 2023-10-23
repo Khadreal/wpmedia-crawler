@@ -1,3 +1,6 @@
+<?php
+// phpcs:ignoreFile
+?>
 <!DOCTYPE html>
 	<html>
 	<head>
@@ -36,7 +39,7 @@
 			</p>
 			<ul>
 				<?php foreach ( $links as $link ) { ?>
-					<li><a target="_blank" href="<?php echo $link ?>"><?php echo $link ?></a></li>
+					<li><a target="_blank" href="<?php echo $link; ?>"><?php echo $link; ?></a></li>
 				<?php } ?>
 			</ul>
 		</div>

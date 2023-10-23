@@ -52,7 +52,7 @@ class Component {
 	 */
 	public function __construct() {
 		// Register plugin lifecycle hooks.
-		register_deactivation_hook( ROCKET_CRWL_PLUGIN_FILENAME, array( $this, 'wpc_deactivate' ) );
+		register_deactivation_hook( WPCRAWLER_PLUGIN_FILENAME, array( $this, 'wpc_deactivate' ) );
 
 		$this->register_callbacks();
 	}

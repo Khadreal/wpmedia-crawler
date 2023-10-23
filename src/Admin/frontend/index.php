@@ -2,37 +2,38 @@
 
 use WPCrawler\Component;
 
-$pages = [];
-if( get_option('page_on_front') ){
-	$pages = get_pages();
+$wpcrawler_pages = array();
+
+if ( get_option( 'page_on_front' ) ) {
+	$wpcrawler_pages = get_pages();
 }
 
-$component = new Component();
-$results = $component->get_results();
+$wpcrawler_component = new Component();
+$wpcrawler_results   = $wpcrawler_component->get_results();
 ?>
 <div class="wrap">
 	<div class="flex d-flex">
-		<h2><?php _e( 'Crawl page', 'wpmedia-crawler' ); ?></h2>
+		<h2><?php esc_html_e( 'Crawl page', 'wpmedia-crawler' ); ?></h2>
 		<form method="POST">
 			<table>
 				<tr>
 					<td>
 						<label for="page_id">
-							<?php _e( 'Select a page to crawl', 'wpmedia-crawler' ); ?>
+							<?php esc_html_e( 'Select a page to crawl', 'wpmedia-crawler' ); ?>
 						</label>
 					</td>
 					<td>
 						<select name="page_id" id="page_id">
 							<option value=""><?php echo esc_attr( __( 'Please select page', 'wpmedia-crawler' ) ); ?></option>
-							<?php if( ! $pages ) : ?>
+							<?php if ( ! $wpcrawler_pages ) : ?>
 								<option value="homepage">
-									<?php _e( 'Homepage', 'wpmedia-crawler' ); ?>
+									<?php esc_html_e( 'Homepage', 'wpmedia-crawler' ); ?>
 								</option>
 							<?php else : ?>
-								<?php foreach( $pages as $page ) :?>
-									<option value="<?php echo esc_attr( $page->ID ) ?>"><?php echo esc_html( $page->post_title ); ?></option>
+								<?php foreach ( $wpcrawler_pages as $wpcrawler_page ) : ?>
+									<option value="<?php echo esc_attr( $wpcrawler_page->ID ); ?>"><?php echo esc_html( $wpcrawler_page->post_title ); ?></option>
 								<?php endforeach; ?>
-							<?php endif;?>
+							<?php endif; ?>
 						</select>
 					</td>
 					<td>
@@ -48,48 +49,48 @@ $results = $component->get_results();
 
 	<div id="crawl-jobs-list-table">
 		<div id="crawl-jobs-post-body">
-			<?php if( count( $results ) > 0 ): ?>
+			<?php if ( count( $wpcrawler_results ) > 0 ) : ?>
 				<table class="wp-list-table widefat striped">
 					<tr>
-						<th><?php _e( 'ID', 'wpmedia-crawler' ); ?></th>
-						<th style="width: 80%"><?php _e( 'Page Title', 'wpmedia-crawler' ); ?></th>
-						<th><?php _e( 'Action', 'wpmedia-crawler' ); ?></th>
+						<th><?php esc_html_e( 'ID', 'wpmedia-crawler' ); ?></th>
+						<th style="width: 80%"><?php esc_html_e( 'Page Title', 'wpmedia-crawler' ); ?></th>
+						<th><?php esc_html_e( 'Action', 'wpmedia-crawler' ); ?></th>
 					</tr>
-					<?php foreach( $results as $key => $result ) : ?>
+					<?php foreach ( $wpcrawler_results as $wpcrawler_key => $wpcrawler_result ) : ?>
 						<tr>
-							<td><?php echo $key + 1;?></td>
-							<td><?php echo $result['title'] ?></td>
+							<td><?php esc_html( $wpcrawler_key + 1 ); ?></td>
+							<td><?php esc_html( $wpcrawler_result['title'] ); ?></td>
 							<td>
 								<?php
-								echo sprintf(
+								printf(
 									'<a href="%s">%s',
-									$component->single_page_action( $result['key'], 'view' ),
-									__( 'View links', 'wpmedia-crawler' )
+									esc_url( $wpcrawler_component->single_page_action( $wpcrawler_result['key'], 'view' ) ),
+									esc_html__( 'View links', 'wpmedia-crawler' )
 								);
 								?>
 								<br>
 								<?php
-								echo sprintf(
+								printf(
 									'<a target="%s" href="%s">%s',
 									'_blank',
-									$component->view_static_page( $result['key'] ),
-									__( 'View static page', 'wpmedia-crawler' )
+									esc_url( $wpcrawler_component->view_static_page( $result['key'] ) ),
+									esc_html__( 'View static page', 'wpmedia-crawler' )
 								);
 								?>
 								<br>
 								<?php
-								echo sprintf(
+								printf(
 									'<a target="%s" href="%s">%s',
 									'_blank',
-									$component->view_static_page( $result['key'], 'sitemap' ),
-									__( 'View sitemap', 'wpmedia-crawler' )
+									esc_url( $wpcrawler_component->view_static_page( $result['key'], 'sitemap' ) ),
+									esc_html__( 'View sitemap', 'wpmedia-crawler' )
 								);
 								?>
 								<br>
 								<?php
-								echo sprintf(
+								printf(
 									'<a href="%s"><i class="dashicons dashicons-trash"></i></a>',
-									$component->delete_action( $result['key'], 'delete' )
+									esc_url( $wpcrawler_component->delete_action( $result['key'], 'delete' ) )
 								);
 								?>
 							</td>
@@ -97,7 +98,7 @@ $results = $component->get_results();
 					<?php endforeach; ?>
 				</table>
 			<?php else : ?>
-				<h1><?php _e( 'No records available', 'wpmedia-crawler' ); ?></h1>
+				<h1><?php esc_html_e( 'No records available', 'wpmedia-crawler' ); ?></h1>
 			<?php endif; ?>
 		</div>
 	</div>
