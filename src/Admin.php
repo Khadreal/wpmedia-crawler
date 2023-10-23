@@ -215,6 +215,7 @@ class Admin {
 		$url   = ( 0 === $args['id'] ) ? get_home_url() : get_page_link( $args['id'] );
 		$title = ( 0 === $args['id'] ) ? 'Homepage' : get_the_title( $args['id'] );
 
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$page_data = file_get_contents( $url );
 		$doc       = new \DOMDocument();
 		// Suppress the error if html string is not valid mostly for html 5(weird right).
@@ -238,18 +239,18 @@ class Admin {
 	 * @return array
 	 */
 	private function process_page_links( $links ): array {
-		$site_url = parse_url( get_site_url(), PHP_URL_HOST );
+		$site_url = wp_parse_url( get_site_url(), PHP_URL_HOST );
 
 		$retval = array();
 
 		foreach ( $links as $object ) {
 			$link = $object->getAttribute( 'href' );
 
-			$path      = parse_url( $link, PHP_URL_PATH );
+			$path      = wp_parse_url( $link, PHP_URL_PATH );
 			$pos       = strrpos( $path, '.' );
 			$extension = $pos ? substr( $path, $pos ) : '';
 			if ( in_array( $extension, $this->extensions, true )
-				|| parse_url( $link, PHP_URL_HOST ) !== $site_url
+				|| wp_parse_url( $link, PHP_URL_HOST ) !== $site_url
 			) {
 				continue;
 			}
@@ -269,6 +270,7 @@ class Admin {
 	 * @return void
 	 */
 	private function generate_static_file( string $data, string $filename ): void {
+		global $wp_filesystem;
 		$upload_dir = wp_upload_dir()['basedir'];
 		$directory  = $upload_dir . $this->html_directory;
 
@@ -278,8 +280,30 @@ class Admin {
 
 		$filename = $directory . $filename . '.html';
 
+		$this->save_file_to_directory( $filename, $data );
+	}
+
+	/**
+	 * Save file to directory
+	 *
+	 * @param string $filename The file name .
+	 * @param string $data The data to save.
+	 *
+	 * @return void
+	 */
+	private function save_file_to_directory( string $filename, string $data ): void {
+		global $wp_filesystem;
+
+		if ( ! is_a( $wp_filesystem, 'WP_Filesystem_Base' ) ) {
+			$creds = request_filesystem_credentials( site_url() );
+			wp_filesystem( $creds );
+		}
+
 		// Save to directory, so it can be bundled or retrieved later.
-		file_put_contents( $filename, $data );
+		$wp_filesystem->put_contents(
+			$filename,
+			$data
+		);
 	}
 
 	/**
@@ -330,7 +354,7 @@ class Admin {
 
 		$sitemap = $directory . $filename . '.html';
 
-		file_put_contents( $sitemap, $html );
+		$this->save_file_to_directory( $sitemap, $html );
 	}
 
 	/**
@@ -352,7 +376,6 @@ class Admin {
 
 		$sitemap = $directory . $filename . '.xml';
 
-		// Save to disc so it can be retrieved later.
-		file_put_contents( $sitemap, $xml );
+		$this->save_file_to_directory( $sitemap, $xml );
 	}
 }

@@ -22,8 +22,8 @@
 					</tr>
 					<?php foreach ( $links as $wpcrawler_key => $wpcrawler_link ) : ?>
 						<tr>
-							<td><?php esc_html( $wpcrawler_key + 1 ); ?></td>
-							<td><?php esc_html( $wpcrawler_link ); ?></td>
+							<td><?php echo esc_html( $wpcrawler_key + 1 ); ?></td>
+							<td><?php echo esc_html( $wpcrawler_link ); ?></td>
 						</tr>
 					<?php endforeach; ?>
 				</table>

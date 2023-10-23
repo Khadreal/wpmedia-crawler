@@ -99,11 +99,16 @@ class Component {
 	 * @return void
 	 */
 	public function callback_crawler_admin_page(): void {
-		if ( ! isset( $_GET['key'] ) ) {
+		if ( ! isset( $_GET['_wpnonce'] )
+			|| ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'single_page_action' )
+		) {
 			include 'Admin/frontend/index.php';
 
 			return;
 		}
+
+		$nonce = sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) );
+
 		$info = '';
 		if ( isset( $_GET['info'] ) ) {
 			$info = sanitize_text_field( wp_unslash( $_GET['info'] ) );
@@ -114,10 +119,17 @@ class Component {
 			$id = sanitize_text_field( wp_unslash( $_GET['id'] ) );
 		}
 
-		$key = sanitize_text_field( wp_unslash( $_GET['key'] ) );
+		if ( isset( $_GET['key'] ) ) {
+			$key = sanitize_text_field( wp_unslash( $_GET['key'] ) );
+		}
+
 		if ( 'view' === $info ) {
 			$links = maybe_unserialize( get_option( $key ) );
 			$title = get_the_title( $id );
+
+			if ( 0 === $id ) {
+				$title = 'Homepage';
+			}
 
 			include 'Admin/frontend/single.php';
 
@@ -191,12 +203,14 @@ class Component {
 	 * @return string
 	 */
 	public function single_page_action( string $key, string $info ): string {
-		return add_query_arg(
+		$url = add_query_arg(
 			array(
 				'info' => $info,
 				'key'  => $key,
 			)
 		);
+
+		return add_query_arg( '_wpnonce', wp_create_nonce( 'single_page_action' ), $url );
 	}
 
 	/**
@@ -225,14 +239,15 @@ class Component {
 	 *
 	 * @param string $key The page key you're trying to view.
 	 * @param string $type This is default to static.
+	 * @param string $extension The extension of the file.
 	 *
 	 * @return string
 	 */
-	public function view_static_page( string $key, string $type = 'static' ): string {
+	public function view_static_page( string $key, string $type = 'static', string $extension = '.html' ): string {
 		$upload_base_url = wp_upload_dir()['baseurl'];
 
 		$directory = 'static' === $type ? $this->html_directory : $this->sitemap_directory;
 
-		return $upload_base_url . $directory . $key . $this->extension;
+		return $upload_base_url . $directory . $key . $extension;
 	}
 }

@@ -58,8 +58,8 @@ $wpcrawler_results   = $wpcrawler_component->get_results();
 					</tr>
 					<?php foreach ( $wpcrawler_results as $wpcrawler_key => $wpcrawler_result ) : ?>
 						<tr>
-							<td><?php esc_html( $wpcrawler_key + 1 ); ?></td>
-							<td><?php esc_html( $wpcrawler_result['title'] ); ?></td>
+							<td><?php echo esc_html( $wpcrawler_key + 1 ); ?></td>
+							<td><?php echo esc_html( $wpcrawler_result['title'] ); ?></td>
 							<td>
 								<?php
 								printf(
@@ -73,7 +73,7 @@ $wpcrawler_results   = $wpcrawler_component->get_results();
 								printf(
 									'<a target="%s" href="%s">%s',
 									'_blank',
-									esc_url( $wpcrawler_component->view_static_page( $result['key'] ) ),
+									esc_url( $wpcrawler_component->view_static_page( $wpcrawler_result['key'] ) ),
 									esc_html__( 'View static page', 'wpmedia-crawler' )
 								);
 								?>
@@ -82,15 +82,24 @@ $wpcrawler_results   = $wpcrawler_component->get_results();
 								printf(
 									'<a target="%s" href="%s">%s',
 									'_blank',
-									esc_url( $wpcrawler_component->view_static_page( $result['key'], 'sitemap' ) ),
-									esc_html__( 'View sitemap', 'wpmedia-crawler' )
+									esc_url( $wpcrawler_component->view_static_page( $wpcrawler_result['key'], 'sitemap' ) ),
+									esc_html__( 'View sitemap HTML', 'wpmedia-crawler' )
+								);
+								?>
+								<br>
+								<?php
+								printf(
+									'<a target="%s" href="%s">%s',
+									'_blank',
+									esc_url( $wpcrawler_component->view_static_page( $wpcrawler_result['key'], 'sitemap', '.xml' ) ),
+									esc_html__( 'View sitemap XML', 'wpmedia-crawler' )
 								);
 								?>
 								<br>
 								<?php
 								printf(
 									'<a href="%s"><i class="dashicons dashicons-trash"></i></a>',
-									esc_url( $wpcrawler_component->delete_action( $result['key'], 'delete' ) )
+									esc_url( $wpcrawler_component->delete_action( $wpcrawler_result['key'], 'delete' ) )
 								);
 								?>
 							</td>
