@@ -218,7 +218,7 @@ class Admin {
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$page_data = file_get_contents( $url );
 		$doc       = new \DOMDocument();
-		// Suppress the error if html string is not valid mostly for html 5(weird right).
+		// Suppress the error if html string is not valid mostly for html 5(a lil bit weird right).
 		libxml_use_internal_errors( true );
 		$doc->loadHTML( $page_data );
 		libxml_use_internal_errors( false );
