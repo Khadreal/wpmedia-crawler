@@ -27,15 +27,14 @@
 
 
 ### Thinking out loud
-- Approach -- To solve any problem , one needs to have a clear understanding of the problem as this would help in coming with an optimal solution, and the **What** and **Why** in the readme file really help in understanding this problem.
+- Approach -- To solve any problem, one needs to have a clear understanding of the problem as this would help in coming with an optimal solution, and the **What** and **Why** in the readme file really help in understanding this problem.
 - Thought about how to get pages(homepage), the ID and how to run the process without affecting website performance of website. Saving/updating the information.
 - Used `update_option()` because it help in checking if data is available and if not create it/update.
 - I chose this particular approach because it doesn't need any third party library/package, and it solves the problem without much complexity.
-- Contemplate saving the links in json(which can be used outside WP) but settled for serialise, currently no plan in using this data out of WP and serialization is widely supported by WP. Maybe next version we can look at it again and decide which option is the best but for now it's serialization.
+- Contemplated saving the links in json(which can be used outside WP) but settled for serialise, currently no plan in using this data out of WP and serialization is widely supported by WP. Maybe next version we can look at it again and decide which option is the best but for now it's serialization.
 - I think saving parent tag of the links (h1 > a) as part of the link can lead to better seo decision for the site admin.
 
 
 ### Questions
 - The brief doesn't mention any use of the static html file that will be saved, so why are saving them and taking up storage space
 - Will the sitemap be generated for all pages or just the homepage alone.
-- 
